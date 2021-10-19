@@ -834,7 +834,9 @@ class InAppWebViewController {
             if ((_webview != null &&
                     _webview!.shouldInterceptFetchRequest != null) ||
                 _inAppBrowser != null) {
+              print('!!!!!!!!!!!!!!');
               Map<String, dynamic> arguments = args[0].cast<String, dynamic>();
+              print('!!!!!!!!!!!!!!-------------');
               FetchRequest request = FetchRequest.fromMap(arguments)!;
 
               if (_webview != null &&

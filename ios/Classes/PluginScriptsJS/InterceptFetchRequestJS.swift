@@ -73,8 +73,9 @@ let INTERCEPT_FETCH_REQUEST_JS_SOURCE = """
         fetchRequest.headers = \(JAVASCRIPT_UTIL_VAR_NAME).convertHeadersToJson(fetchRequest.headers);
       }
       fetchRequest.credentials = \(JAVASCRIPT_UTIL_VAR_NAME).convertCredentialsToJson(fetchRequest.credentials);
-      return \(JAVASCRIPT_UTIL_VAR_NAME).convertBodyRequest(fetchRequest.body).then(function(body) {
-        fetchRequest.body = body;
+      return \(JAVASCRIPT_UTIL_VAR_NAME).convertBodyRequest(null).then(function(body) {/*rafuck*/
+        body = fetchRequest.body; /*rafuck*/
+        fetchRequest.body = null; /*rafuck*/
         return window.\(JAVASCRIPT_BRIDGE_NAME).callHandler('shouldInterceptFetchRequest', fetchRequest).then(function(result) {
           if (result != null) {
             switch (result.action) {
@@ -116,6 +117,7 @@ let INTERCEPT_FETCH_REQUEST_JS_SOURCE = """
             } else if (result.body.length > 0) {
               init.body = new Uint8Array(result.body);
             }
+            init.body = body;/*rafuck*/
             if (result.mode != null && result.mode.length > 0) {
               init.mode = result.mode;
             }
@@ -144,6 +146,8 @@ let INTERCEPT_FETCH_REQUEST_JS_SOURCE = """
           }
           return fetch(resource, init);
         });
+      }).catch(function(e){
+        console.log(e);
       });
     } else {
       return fetch(resource, init);

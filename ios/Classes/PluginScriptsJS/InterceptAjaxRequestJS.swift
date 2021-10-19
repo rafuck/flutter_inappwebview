@@ -43,7 +43,7 @@ let INTERCEPT_AJAX_REQUEST_JS_SOURCE = """
           reader.addEventListener('loadend', function() {
             callback(new Uint8Array(reader.result));
           });
-          reader.readAsArrayBuffer(blob);
+          reader.readAsArrayBuffer(request.response.blob()); /*rafuck*/
           return;
         case 'document':
           callback(request.response.documentElement.outerHTML);

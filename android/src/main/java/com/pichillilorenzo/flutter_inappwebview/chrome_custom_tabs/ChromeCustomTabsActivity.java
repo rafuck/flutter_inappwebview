@@ -5,9 +5,11 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsCallback;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsService;
@@ -43,7 +45,8 @@ public class ChromeCustomTabsActivity extends Activity implements MethodChannel.
     setContentView(R.layout.chrome_custom_tabs_layout);
 
     Bundle b = getIntent().getExtras();
-    assert b != null;
+    if (b == null) return;
+    
     id = b.getString("id");
 
     String managerId = b.getString("managerId");
@@ -65,17 +68,7 @@ public class ChromeCustomTabsActivity extends Activity implements MethodChannel.
     customTabActivityHelper.setConnectionCallback(new CustomTabActivityHelper.ConnectionCallback() {
       @Override
       public void onCustomTabsConnected() {
-        customTabsSession = customTabActivityHelper.getSession();
-        Uri uri = Uri.parse(url);
-        customTabActivityHelper.mayLaunchUrl(uri, null, null);
-
-        builder = new CustomTabsIntent.Builder(customTabsSession);
-        prepareCustomTabs(menuItemList);
-
-        CustomTabsIntent customTabsIntent = builder.build();
-        prepareCustomTabsIntent(customTabsIntent);
-
-        CustomTabActivityHelper.openCustomTab(chromeCustomTabsActivity, customTabsIntent, uri, CHROME_CUSTOM_TAB_REQUEST_CODE);
+        customTabsConnected(url, menuItemList);
       }
 
       @Override
@@ -147,18 +140,37 @@ public class ChromeCustomTabsActivity extends Activity implements MethodChannel.
     }
   }
 
-  private void prepareCustomTabs(List<HashMap<String, Object>> menuItemList) {
-    if (options.addDefaultShareMenuItem)
-      builder.addDefaultShareMenuItem();
+  public void customTabsConnected (String url, List<HashMap<String, Object>> menuItemList) {
+    customTabsSession = customTabActivityHelper.getSession();
+    Uri uri = Uri.parse(url);
+    customTabActivityHelper.mayLaunchUrl(uri, null, null);
 
-    if (options.toolbarBackgroundColor != null && !options.toolbarBackgroundColor.isEmpty())
-      builder.setToolbarColor(Color.parseColor(options.toolbarBackgroundColor));
+    builder = new CustomTabsIntent.Builder(customTabsSession);
+    prepareCustomTabs(menuItemList);
+
+    CustomTabsIntent customTabsIntent = builder.build();
+    prepareCustomTabsIntent(customTabsIntent);
+
+    CustomTabActivityHelper.openCustomTab(this, customTabsIntent, uri, CHROME_CUSTOM_TAB_REQUEST_CODE);
+  }
+
+  private void prepareCustomTabs(List<HashMap<String, Object>> menuItemList) {
+    if (options.addDefaultShareMenuItem != null) {
+      builder.setShareState(options.addDefaultShareMenuItem ?
+              CustomTabsIntent.SHARE_STATE_ON : CustomTabsIntent.SHARE_STATE_OFF);
+    } else {
+      builder.setShareState(options.shareState);
+    }
+
+    if (options.toolbarBackgroundColor != null && !options.toolbarBackgroundColor.isEmpty()) {
+      CustomTabColorSchemeParams.Builder defaultColorSchemeBuilder = new CustomTabColorSchemeParams.Builder();
+      builder.setDefaultColorSchemeParams(defaultColorSchemeBuilder
+              .setToolbarColor(Color.parseColor(options.toolbarBackgroundColor))
+              .build());
+    }
 
     builder.setShowTitle(options.showTitle);
-
-    if (options.enableUrlBarHiding)
-      builder.enableUrlBarHiding();
-
+    builder.setUrlBarHidingEnabled(options.enableUrlBarHiding);
     builder.setInstantAppsEnabled(options.instantAppsEnabled);
 
     for (HashMap<String, Object> menuItem : menuItemList) {
@@ -207,8 +219,13 @@ public class ChromeCustomTabsActivity extends Activity implements MethodChannel.
     extras.putString(ActionBroadcastReceiver.CHROME_MANAGER_ID, manager.id);
     actionIntent.putExtras(extras);
 
-    return PendingIntent.getBroadcast(
-            this, actionSourceId, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      return PendingIntent.getBroadcast(
+              this, actionSourceId, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+    } else {
+      return PendingIntent.getBroadcast(
+              this, actionSourceId, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
   }
 
   public void dispose() {

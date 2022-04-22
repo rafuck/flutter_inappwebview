@@ -397,7 +397,7 @@ void main() {
       late File fileJs;
 
       setUpAll(() async {
-        appSupportDir = (await getApplicationSupportDirectory())!;
+        appSupportDir = (await getApplicationSupportDirectory());
 
         final Directory htmlFolder = Directory('${appSupportDir.path}/html/');
         if (!await htmlFolder.exists()) {
@@ -476,7 +476,7 @@ void main() {
       }, skip: !Platform.isIOS);
 
       testWidgets(
-          'loadUrl with file:// scheme and iosAllowingReadAccessTo argument',
+          'loadUrl with file:// scheme and allowingReadAccessTo argument',
           (WidgetTester tester) async {
         final Completer<ConsoleMessage?> consoleMessageShouldNotComplete =
             Completer<ConsoleMessage?>();
@@ -511,7 +511,7 @@ void main() {
                 controller.loadUrl(
                     urlRequest:
                         URLRequest(url: Uri.parse('file://${fileHtml.path}')),
-                    iosAllowingReadAccessTo:
+                    allowingReadAccessTo:
                         Uri.parse('file://${appSupportDir.path}/'));
               },
               onConsoleMessage: (controller, consoleMessage) {
@@ -1558,6 +1558,7 @@ void main() {
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
+            initialUrlRequest: URLRequest(url: Uri.parse("about:blank")),
             initialOptions: InAppWebViewGroupOptions(
               crossPlatform: InAppWebViewOptions(
                   javaScriptEnabled: true,
@@ -2705,7 +2706,7 @@ void main() {
       expect(numberOfMatches, 2);
     });
 
-    testWidgets('onDownloadStart', (WidgetTester tester) async {
+    testWidgets('onDownloadStartRequest', (WidgetTester tester) async {
       final Completer controllerCompleter = Completer<InAppWebViewController>();
       final Completer<String> onDownloadStartCompleter = Completer<String>();
       await tester.pumpWidget(
@@ -2739,8 +2740,8 @@ void main() {
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
-            onDownloadStart: (controller, url) {
-              onDownloadStartCompleter.complete(url.toString());
+            onDownloadStartRequest: (controller, request) {
+              onDownloadStartCompleter.complete(request.url.toString());
             },
           ),
         ),
@@ -3804,7 +3805,7 @@ setTimeout(function() {
 """,
           encoding: 'utf-8',
           mimeType: 'text/html',
-          androidHistoryUrl: Uri.parse("https://flutter.dev"),
+          historyUrl: Uri.parse("https://flutter.dev"),
           baseUrl: Uri.parse("https://flutter.dev"));
       await pageLoads.stream.first;
 
@@ -4550,7 +4551,7 @@ setTimeout(function() {
       await pageLoaded.future;
 
       await expectLater(
-          controller.zoomBy(zoomFactor: 3.0, iosAnimated: true), completes);
+          controller.zoomBy(zoomFactor: 3.0, animated: true), completes);
     });
 
     testWidgets('getZoomScale', (WidgetTester tester) async {
@@ -4853,7 +4854,7 @@ setTimeout(function() {
         fileName = fileName + WebArchiveFormat.WEBARCHIVE.toValue();
       }
 
-      var fullPath = supportDir!.path + Platform.pathSeparator + fileName;
+      var fullPath = supportDir.path + Platform.pathSeparator + fileName;
       var path = await controller.saveWebArchive(filePath: fullPath);
       expect(path, isNotNull);
       expect(path, endsWith(fileName));
@@ -5140,9 +5141,9 @@ setTimeout(function() {
         final InAppWebViewController controller =
             await controllerCompleter.future;
         await pageLoaded.future;
-        var originUrl = (await controller.android.getOriginalUrl())?.toString();
+        var originUrl = (await controller.getOriginalUrl())?.toString();
         expect(originUrl, 'https://github.com/flutter');
-      }, skip: !Platform.isAndroid);
+      });
 
       testWidgets('pageDown/pageUp', (WidgetTester tester) async {
         final Completer controllerCompleter =
@@ -5269,6 +5270,10 @@ setTimeout(function() {
       test('getCurrentWebViewPackage', () async {
         expect(await AndroidInAppWebViewController.getCurrentWebViewPackage(),
             isNotNull);
+      }, skip: !Platform.isAndroid);
+
+      test('setWebContentsDebuggingEnabled', () async {
+        expect(AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true), completes);
       }, skip: !Platform.isAndroid);
     }, skip: !Platform.isAndroid);
 
@@ -5736,6 +5741,84 @@ setTimeout(function() {
       await chromeSafariBrowser.browserClosed.future;
       expect(chromeSafariBrowser.isOpened(), false);
     });
+
+    group('Android Custom Tabs', () {
+      test('Custom Tabs single instance', () async {
+        var chromeSafariBrowser = new MyChromeSafariBrowser();
+        expect(chromeSafariBrowser.isOpened(), false);
+
+        await chromeSafariBrowser.open(
+          url: Uri.parse("https://github.com/flutter"),
+          options: ChromeSafariBrowserClassOptions(
+            android: AndroidChromeCustomTabsOptions(
+              isSingleInstance: true
+            )
+          )
+        );
+        await chromeSafariBrowser.browserCreated.future;
+        expect(chromeSafariBrowser.isOpened(), true);
+        expect(() async {
+          await chromeSafariBrowser.open(
+              url: Uri.parse("https://flutter.dev"));
+        }, throwsA(isInstanceOf<ChromeSafariBrowserAlreadyOpenedException>()));
+
+        await expectLater(chromeSafariBrowser.firstPageLoaded.future, completes);
+        await chromeSafariBrowser.close();
+        await chromeSafariBrowser.browserClosed.future;
+        expect(chromeSafariBrowser.isOpened(), false);
+      });
+
+      test('Trusted Web Activity', () async {
+        var chromeSafariBrowser = new MyChromeSafariBrowser();
+        expect(chromeSafariBrowser.isOpened(), false);
+
+        await chromeSafariBrowser.open(
+            url: Uri.parse("https://github.com/flutter"),
+            options: ChromeSafariBrowserClassOptions(
+                android: AndroidChromeCustomTabsOptions(
+                    isTrustedWebActivity: true
+                )
+            )
+        );
+        await chromeSafariBrowser.browserCreated.future;
+        expect(chromeSafariBrowser.isOpened(), true);
+        expect(() async {
+          await chromeSafariBrowser.open(
+              url: Uri.parse("https://flutter.dev"));
+        }, throwsA(isInstanceOf<ChromeSafariBrowserAlreadyOpenedException>()));
+
+        await expectLater(chromeSafariBrowser.firstPageLoaded.future, completes);
+        await chromeSafariBrowser.close();
+        await chromeSafariBrowser.browserClosed.future;
+        expect(chromeSafariBrowser.isOpened(), false);
+      });
+
+      test('Trusted Web Activity single instance', () async {
+        var chromeSafariBrowser = new MyChromeSafariBrowser();
+        expect(chromeSafariBrowser.isOpened(), false);
+
+        await chromeSafariBrowser.open(
+            url: Uri.parse("https://github.com/flutter"),
+            options: ChromeSafariBrowserClassOptions(
+                android: AndroidChromeCustomTabsOptions(
+                  isTrustedWebActivity: true,
+                  isSingleInstance: true
+                )
+            )
+        );
+        await chromeSafariBrowser.browserCreated.future;
+        expect(chromeSafariBrowser.isOpened(), true);
+        expect(() async {
+          await chromeSafariBrowser.open(
+              url: Uri.parse("https://flutter.dev"));
+        }, throwsA(isInstanceOf<ChromeSafariBrowserAlreadyOpenedException>()));
+
+        await expectLater(chromeSafariBrowser.firstPageLoaded.future, completes);
+        await chromeSafariBrowser.close();
+        await chromeSafariBrowser.browserClosed.future;
+        expect(chromeSafariBrowser.isOpened(), false);
+      });
+    }, skip: !Platform.isAndroid);
   });
 
   group('InAppLocalhostServer', () {

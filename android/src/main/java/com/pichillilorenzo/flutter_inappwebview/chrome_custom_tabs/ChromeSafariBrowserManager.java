@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
+import com.pichillilorenzo.flutter_inappwebview.Util;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -67,9 +68,17 @@ public class ChromeSafariBrowserManager implements MethodChannel.MethodCallHandl
     extras.putSerializable("options", options);
     extras.putSerializable("menuItemList", (Serializable) menuItemList);
 
+    Boolean isSingleInstance = (Boolean) Util.getOrDefault(options, "isSingleInstance", false);
+    Boolean isTrustedWebActivity = (Boolean) Util.getOrDefault(options, "isTrustedWebActivity", false);
     if (CustomTabActivityHelper.isAvailable(activity)) {
-      intent = new Intent(activity, ChromeCustomTabsActivity.class);
+      intent = new Intent(activity, !isSingleInstance ? 
+              (!isTrustedWebActivity ? ChromeCustomTabsActivity.class : TrustedWebActivity.class) :
+              (!isTrustedWebActivity ? ChromeCustomTabsActivitySingleInstance.class : TrustedWebActivitySingleInstance.class));
       intent.putExtras(extras);
+      Boolean noHistory = (Boolean) Util.getOrDefault(options, "noHistory", false);
+      if (noHistory) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+      }
       activity.startActivity(intent);
       result.success(true);
       return;

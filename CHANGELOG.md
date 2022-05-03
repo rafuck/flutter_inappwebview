@@ -1,3 +1,48 @@
+## 5.4.3+4
+
+- Updated docs for `ChromeSafariBrowser.open` and throw error on iOS if the `url` parameter use a different scheme then `http` or `https`
+
+## 5.4.3+3
+
+- Fixed "Android error: package org.jetbrains.annotations does not exist import org.jetbrains.annotations.NotNull;" [#1166](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1166)
+
+## 5.4.3+2
+
+- Fixed "Latest version 5.4.3 crashes on Android" [#1159](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1159)
+
+## 5.4.3+1
+
+- Try to fix "Latest version 5.4.3 crashes on Android" [#1159](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1159)
+
+## 5.4.3
+
+- Added Bitwise OR operator support for `AndroidActionModeMenuItem` class
+
+## 5.4.2+1
+
+- Try to fix "Latest version 5.4.2 crashes on Android - HeadlessInAppWebView.dispose" [#1155](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1155)
+
+## 5.4.2
+
+- Added `setActionButton` method to `ChromeSafariBrowser` class
+
+## 5.4.1+2
+
+- Fixed "Android ServiceWorkerControllerCompat.setServiceWorkerClient(null) makes Webivew Plugin Crashes" [#1151](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1151)
+
+## 5.4.1+1
+
+- Fixed Android default context menu over custom context menu on API Level 31+ 
+
+## 5.4.1
+
+- Managed iOS native `detachFromEngine` flutter plugin event and updated `dispose` methods
+- Updated Android native `HeadlessInAppWebViewManager.dispose` and `HeadlessInAppWebView.dispose` methods
+
+## 5.4.0+3
+
+- Fixed Android error in some cases when calling `setServiceWorkerClient` java method on `ServiceWorkerManager` initialization
+
 ## 5.4.0+2
 
 - Fixed Android `ChromeCustomTabsActivity` not responding to the `ActionBroadcastReceiver`

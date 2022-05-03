@@ -41,7 +41,6 @@ import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebBackForwardList;
 import android.webkit.WebHistoryItem;
-import android.webkit.WebMessage;
 import android.webkit.WebSettings;
 import android.webkit.WebStorage;
 import android.widget.HorizontalScrollView;
@@ -55,8 +54,6 @@ import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
 
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
-import com.pichillilorenzo.flutter_inappwebview.types.DownloadStartRequest;
-import com.pichillilorenzo.flutter_inappwebview.types.InAppWebViewInterface;
 import com.pichillilorenzo.flutter_inappwebview.JavaScriptBridgeInterface;
 import com.pichillilorenzo.flutter_inappwebview.R;
 import com.pichillilorenzo.flutter_inappwebview.Util;
@@ -77,6 +74,8 @@ import com.pichillilorenzo.flutter_inappwebview.plugin_scripts_js.PrintJS;
 import com.pichillilorenzo.flutter_inappwebview.plugin_scripts_js.PromisePolyfillJS;
 import com.pichillilorenzo.flutter_inappwebview.pull_to_refresh.PullToRefreshLayout;
 import com.pichillilorenzo.flutter_inappwebview.types.ContentWorld;
+import com.pichillilorenzo.flutter_inappwebview.types.DownloadStartRequest;
+import com.pichillilorenzo.flutter_inappwebview.types.InAppWebViewInterface;
 import com.pichillilorenzo.flutter_inappwebview.types.PluginScript;
 import com.pichillilorenzo.flutter_inappwebview.types.PreferredContentModeOptionType;
 import com.pichillilorenzo.flutter_inappwebview.types.URLRequest;
@@ -176,7 +175,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     this.options = options;
     this.contextMenu = contextMenu;
     this.userContentController.addUserOnlyScripts(userScripts);
-    plugin.activity.registerForContextMenu(this);
+    if (plugin != null && plugin.activity != null) {
+      plugin.activity.registerForContextMenu(this);
+    }
   }
 
   public void prepare() {
@@ -1217,20 +1218,22 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   public void printCurrentPage() {
-    // Get a PrintManager instance
-    PrintManager printManager = (PrintManager) plugin.activity.getSystemService(Context.PRINT_SERVICE);
+    if (plugin != null && plugin.activity != null) {
+      // Get a PrintManager instance
+      PrintManager printManager = (PrintManager) plugin.activity.getSystemService(Context.PRINT_SERVICE);
 
-    if (printManager != null) {
-      String jobName = getTitle() + " Document";
+      if (printManager != null) {
+        String jobName = getTitle() + " Document";
 
-      // Get a printCurrentPage adapter instance
-      PrintDocumentAdapter printAdapter = createPrintDocumentAdapter(jobName);
+        // Get a printCurrentPage adapter instance
+        PrintDocumentAdapter printAdapter = createPrintDocumentAdapter(jobName);
 
-      // Create a printCurrentPage job with name and adapter instance
-      printManager.print(jobName, printAdapter,
-              new PrintAttributes.Builder().build());
-    } else {
-      Log.e(LOG_TAG, "No PrintManager available");
+        // Create a printCurrentPage job with name and adapter instance
+        printManager.print(jobName, printAdapter,
+                new PrintAttributes.Builder().build());
+      } else {
+        Log.e(LOG_TAG, "No PrintManager available");
+      }
     }
   }
 
@@ -1357,8 +1360,16 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
 
     Menu actionMenu = actionMode.getMenu();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      actionMode.hide(3000);
+    }
+    List<MenuItem> defaultMenuItems = new ArrayList<>();
+    for (int i = 0; i < actionMenu.size(); i++) {
+      defaultMenuItems.add(actionMenu.getItem(i));
+    }
+    actionMenu.clear();
+    actionMode.finish();
     if (options.disableContextMenu) {
-      actionMenu.clear();
       return actionMode;
     }
 
@@ -1379,8 +1390,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     customMenuItems = customMenuItems == null ? new ArrayList<Map<String, Object>>() : customMenuItems;
 
     if (contextMenuOptions.hideDefaultSystemContextMenuItems == null || !contextMenuOptions.hideDefaultSystemContextMenuItems) {
-      for (int i = 0; i < actionMenu.size(); i++) {
-        final MenuItem menuItem = actionMenu.getItem(i);
+      for (final MenuItem menuItem : defaultMenuItems) {
         final int itemId = menuItem.getItemId();
         final String itemTitle = menuItem.getTitle().toString();
 
@@ -1457,7 +1467,6 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
         checkContextMenuShouldBeClosedTask.run();
       }
     }
-    actionMenu.clear();
 
     return actionMode;
   }

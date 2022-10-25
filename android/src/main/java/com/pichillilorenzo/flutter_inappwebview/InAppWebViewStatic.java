@@ -1,14 +1,18 @@
 package com.pichillilorenzo.flutter_inappwebview;
 
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
+
+import com.pichillilorenzo.flutter_inappwebview.types.ChannelDelegateImpl;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -20,21 +24,20 @@ import java.util.Set;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
-public class InAppWebViewStatic implements MethodChannel.MethodCallHandler {
-  
+public class InAppWebViewStatic extends ChannelDelegateImpl {
   protected static final String LOG_TAG = "InAppWebViewStatic";
-  public MethodChannel channel;
+  public static final String METHOD_CHANNEL_NAME = "com.pichillilorenzo/flutter_inappwebview_static";
+  
   @Nullable
   public InAppWebViewFlutterPlugin plugin;
 
   public InAppWebViewStatic(final InAppWebViewFlutterPlugin plugin) {
+    super(new MethodChannel(plugin.messenger, METHOD_CHANNEL_NAME));
     this.plugin = plugin;
-    channel = new MethodChannel(plugin.messenger, "com.pichillilorenzo/flutter_inappwebview_static");
-    channel.setMethodCallHandler(this);
   }
 
   @Override
-  public void onMethodCall(MethodCall call, final MethodChannel.Result result) {
+  public void onMethodCall(@NonNull MethodCall call, @NonNull final MethodChannel.Result result) {
     switch (call.method) {
       case "getDefaultUserAgent":
         result.success(WebSettings.getDefaultUserAgent(plugin.applicationContext));
@@ -57,7 +60,7 @@ public class InAppWebViewStatic implements MethodChannel.MethodCallHandler {
         } else
           result.success(null);
         break;
-      case "setSafeBrowsingWhitelist":
+      case "setSafeBrowsingAllowlist":
         if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ALLOWLIST)) {
           Set<String> hosts = new HashSet<>((List<String>) call.argument("hosts"));
           WebViewCompat.setSafeBrowsingAllowlist(hosts, new ValueCallback<Boolean>() {
@@ -79,8 +82,12 @@ public class InAppWebViewStatic implements MethodChannel.MethodCallHandler {
           result.success(false);
         break;
       case "getCurrentWebViewPackage":
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && plugin != null && plugin.activity != null) {
-          result.success(convertWebViewPackageToMap(WebViewCompat.getCurrentWebViewPackage(plugin.activity)));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && plugin != null && (plugin.activity != null || plugin.applicationContext != null)) {
+          Context context = plugin.activity;
+          if (context == null) {
+            context = plugin.applicationContext;
+          }
+          result.success(convertWebViewPackageToMap(WebViewCompat.getCurrentWebViewPackage(context)));
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
           //with Android Lollipop (API 21) they started to update the WebView
           //as a separate APK with the PlayStore and they added the
@@ -124,8 +131,9 @@ public class InAppWebViewStatic implements MethodChannel.MethodCallHandler {
     return webViewPackageInfoMap;
   }
 
+  @Override
   public void dispose() {
-    channel.setMethodCallHandler(null);
+    super.dispose();
     plugin = null;
   }
 }

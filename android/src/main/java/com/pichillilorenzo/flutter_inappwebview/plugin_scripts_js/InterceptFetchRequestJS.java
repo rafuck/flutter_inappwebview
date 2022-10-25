@@ -11,7 +11,10 @@ public class InterceptFetchRequestJS {
         public static final PluginScript INTERCEPT_FETCH_REQUEST_JS_PLUGIN_SCRIPT = new PluginScript(
                         InterceptFetchRequestJS.INTERCEPT_FETCH_REQUEST_JS_PLUGIN_SCRIPT_GROUP_NAME,
                         InterceptFetchRequestJS.INTERCEPT_FETCH_REQUEST_JS_SOURCE,
-                        UserScriptInjectionTime.AT_DOCUMENT_START, null, true);
+                        UserScriptInjectionTime.AT_DOCUMENT_START,
+                        null,
+                        true,
+                        null);
 
         public static final String INTERCEPT_FETCH_REQUEST_JS_SOURCE = "(function(fetch) {"
                         + "  var w = (window.top == null || window.top === window) ? window : window.top;" + "  w."

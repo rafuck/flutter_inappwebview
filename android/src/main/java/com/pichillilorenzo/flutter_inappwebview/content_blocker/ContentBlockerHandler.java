@@ -5,7 +5,9 @@ import android.os.Handler;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
 
-import com.pichillilorenzo.flutter_inappwebview.in_app_webview.InAppWebView;
+import androidx.annotation.Nullable;
+
+import com.pichillilorenzo.flutter_inappwebview.webview.in_app_webview.InAppWebView;
 import com.pichillilorenzo.flutter_inappwebview.Util;
 
 import java.io.ByteArrayInputStream;
@@ -44,8 +46,9 @@ public class ContentBlockerHandler {
         this.ruleList = newRuleList;
     }
 
+    @Nullable
     public WebResourceResponse checkUrl(final InAppWebView webView, String url, ContentBlockerTriggerResourceType responseResourceType) throws URISyntaxException, InterruptedException, MalformedURLException {
-        if (webView.options.contentBlockers == null)
+        if (webView.customSettings.contentBlockers == null)
             return null;
 
         URI u;
@@ -215,12 +218,14 @@ public class ContentBlockerHandler {
         }
         return null;
     }
-
+    
+    @Nullable
     public WebResourceResponse checkUrl(final InAppWebView webView, String url) throws URISyntaxException, InterruptedException, MalformedURLException {
         ContentBlockerTriggerResourceType responseResourceType = getResourceTypeFromUrl(url);
         return checkUrl(webView, url, responseResourceType);
     }
 
+    @Nullable
     public WebResourceResponse checkUrl(final InAppWebView webView, String url, String contentType) throws URISyntaxException, InterruptedException, MalformedURLException {
         ContentBlockerTriggerResourceType responseResourceType = getResourceTypeFromContentType(contentType);
         return checkUrl(webView, url, responseResourceType);

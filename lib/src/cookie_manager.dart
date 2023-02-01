@@ -8,6 +8,8 @@ import 'in_app_webview/headless_in_app_webview.dart';
 import 'platform_util.dart';
 
 import 'types/main.dart';
+import 'util.dart';
+import 'web_uri.dart';
 
 ///Class that implements a singleton object (shared instance) which manages the cookies used by WebView instances.
 ///On Android, it is implemented using [CookieManager](https://developer.android.com/reference/android/webkit/CookieManager).
@@ -76,7 +78,7 @@ class CookieManager {
   ///- MacOS ([Official API - WKHTTPCookieStore.setCookie](https://developer.apple.com/documentation/webkit/wkhttpcookiestore/2882007-setcookie))
   ///- Web
   Future<void> setCookie(
-      {required Uri url,
+      {required WebUri url,
       required String name,
       required String value,
       String path = "/",
@@ -127,7 +129,7 @@ class CookieManager {
   }
 
   Future<void> _setCookieWithJavaScript(
-      {required Uri url,
+      {required WebUri url,
       required String name,
       required String value,
       String path = "/",
@@ -197,7 +199,7 @@ class CookieManager {
   ///- MacOS ([Official API - WKHTTPCookieStore.getAllCookies](https://developer.apple.com/documentation/webkit/wkhttpcookiestore/2882005-getallcookies))
   ///- Web
   Future<List<Cookie>> getCookies(
-      {required Uri url,
+      {required WebUri url,
       @Deprecated("Use webViewController instead")
           InAppWebViewController? iosBelow11WebViewController,
       InAppWebViewController? webViewController}) async {
@@ -235,7 +237,7 @@ class CookieManager {
   }
 
   Future<List<Cookie>> _getCookiesWithJavaScript(
-      {required Uri url, InAppWebViewController? webViewController}) async {
+      {required WebUri url, InAppWebViewController? webViewController}) async {
     assert(url.toString().isNotEmpty);
 
     List<Cookie> cookies = [];
@@ -310,7 +312,7 @@ class CookieManager {
   ///- MacOS
   ///- Web
   Future<Cookie?> getCookie(
-      {required Uri url,
+      {required WebUri url,
       required String name,
       @Deprecated("Use webViewController instead")
           InAppWebViewController? iosBelow11WebViewController,
@@ -371,7 +373,7 @@ class CookieManager {
   ///- MacOS ([Official API - WKHTTPCookieStore.delete](https://developer.apple.com/documentation/webkit/wkhttpcookiestore/2882009-delete)
   ///- Web
   Future<void> deleteCookie(
-      {required Uri url,
+      {required WebUri url,
       required String name,
       String path = "/",
       String? domain,
@@ -424,7 +426,7 @@ class CookieManager {
   ///- MacOS
   ///- Web
   Future<void> deleteCookies(
-      {required Uri url,
+      {required WebUri url,
       String path = "/",
       String? domain,
       @Deprecated("Use webViewController instead")
@@ -518,14 +520,13 @@ class CookieManager {
   }
 
   Future<bool> _shouldUseJavascript() async {
-    if (kIsWeb) {
+    if (Util.isWeb) {
       return true;
     }
-    if (defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.macOS) {
+    if (Util.isIOS || Util.isMacOS) {
       final platformUtil = PlatformUtil.instance();
       final systemVersion = await platformUtil.getSystemVersion();
-      return defaultTargetPlatform == TargetPlatform.iOS
+      return Util.isIOS
           ? systemVersion.compareTo("11") == -1
           : systemVersion.compareTo("10.13") == -1;
     }

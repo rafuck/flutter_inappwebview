@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/services.dart';
 
@@ -14,6 +15,7 @@ import '../in_app_webview/in_app_webview_settings.dart';
 
 import '../util.dart';
 import '../print_job/main.dart';
+import '../web_uri.dart';
 import 'in_app_browser_settings.dart';
 import '../debug_logging_settings.dart';
 
@@ -271,9 +273,9 @@ class InAppBrowser {
       {required String data,
       String mimeType = "text/html",
       String encoding = "utf8",
-      Uri? baseUrl,
+      WebUri? baseUrl,
       @Deprecated("Use historyUrl instead") Uri? androidHistoryUrl,
-      Uri? historyUrl,
+      WebUri? historyUrl,
       // ignore: deprecated_member_use_from_same_package
       @Deprecated('Use settings instead') InAppBrowserClassOptions? options,
       InAppBrowserClassSettings? settings}) async {
@@ -313,7 +315,7 @@ class InAppBrowser {
   ///- Android native WebView
   ///- iOS
   ///- MacOS
-  static Future<void> openWithSystemBrowser({required Uri url}) async {
+  static Future<void> openWithSystemBrowser({required WebUri url}) async {
     assert(url.toString().isNotEmpty);
     Map<String, dynamic> args = <String, dynamic>{};
     args.putIfAbsent('url', () => url.toString());
@@ -462,7 +464,7 @@ class InAppBrowser {
   ///- Android native WebView ([Official API - WebViewClient.onPageStarted](https://developer.android.com/reference/android/webkit/WebViewClient#onPageStarted(android.webkit.WebView,%20java.lang.String,%20android.graphics.Bitmap)))
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455621-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455621-webview))
-  void onLoadStart(Uri? url) {}
+  void onLoadStart(WebUri? url) {}
 
   ///Event fired when the [InAppBrowser] finishes loading an [url].
   ///
@@ -470,7 +472,7 @@ class InAppBrowser {
   ///- Android native WebView ([Official API - WebViewClient.onPageFinished](https://developer.android.com/reference/android/webkit/WebViewClient#onPageFinished(android.webkit.WebView,%20java.lang.String)))
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455629-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455629-webview))
-  void onLoadStop(Uri? url) {}
+  void onLoadStop(WebUri? url) {}
 
   ///Use [onReceivedError] instead.
   @Deprecated("Use onReceivedError instead")
@@ -839,7 +841,7 @@ class InAppBrowser {
   ///- Android native WebView ([Official API - WebViewClient.doUpdateVisitedHistory](https://developer.android.com/reference/android/webkit/WebViewClient#doUpdateVisitedHistory(android.webkit.WebView,%20java.lang.String,%20boolean)))
   ///- iOS
   ///- MacOS
-  void onUpdateVisitedHistory(Uri? url, bool? isReload) {}
+  void onUpdateVisitedHistory(WebUri? url, bool? isReload) {}
 
   ///Use [onPrintRequest] instead
   @Deprecated("Use onPrintRequest instead")
@@ -858,7 +860,7 @@ class InAppBrowser {
   ///- iOS
   ///- MacOS
   Future<bool?>? onPrintRequest(
-      Uri? url, PrintJobController? printJobController) {
+      WebUri? url, PrintJobController? printJobController) {
     return null;
   }
 
@@ -898,7 +900,7 @@ class InAppBrowser {
   ///- Android native WebView ([Official API - WebViewClient.onPageCommitVisible](https://developer.android.com/reference/android/webkit/WebViewClient#onPageCommitVisible(android.webkit.WebView,%20java.lang.String)))
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455635-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455635-webview))
-  void onPageCommitVisible(Uri? url) {}
+  void onPageCommitVisible(WebUri? url) {}
 
   ///Event fired when a change in the document title occurred.
   ///
@@ -955,7 +957,7 @@ class InAppBrowser {
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewClient.onSafeBrowsingHit](https://developer.android.com/reference/android/webkit/WebViewClient#onSafeBrowsingHit(android.webkit.WebView,%20android.webkit.WebResourceRequest,%20int,%20android.webkit.SafeBrowsingResponse)))
   Future<SafeBrowsingResponse?>? onSafeBrowsingHit(
-      Uri url, SafeBrowsingThreat? threatType) {
+      WebUri url, SafeBrowsingThreat? threatType) {
     return null;
   }
 
@@ -968,11 +970,10 @@ class InAppBrowser {
 
   ///Event fired when the WebView is requesting permission to access the specified resources and the permission currently isn't granted or denied.
   ///
-  ///[origin] represents the origin of the web page which is trying to access the restricted resources.
+  ///[permissionRequest] represents the permission request with an array of resources the web content wants to access
+  ///and the origin of the web page which is trying to access the restricted resources.
   ///
-  ///[resources] represents the array of resources the web content wants to access.
-  ///
-  ///**NOTE for Android**: available only on Android 23+.
+  ///**NOTE for Android**: available only on Android 21+.
   ///
   ///**NOTE for iOS**: available only on iOS 15.0+. The default [PermissionResponse.action] is [PermissionResponseAction.PROMPT].
   ///
@@ -1072,7 +1073,8 @@ class InAppBrowser {
   ///
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewRenderProcessClient.onRenderProcessUnresponsive](https://developer.android.com/reference/android/webkit/WebViewRenderProcessClient#onRenderProcessUnresponsive(android.webkit.WebView,%20android.webkit.WebViewRenderProcess)))
-  Future<WebViewRenderProcessAction?>? onRenderProcessUnresponsive(Uri? url) {
+  Future<WebViewRenderProcessAction?>? onRenderProcessUnresponsive(
+      WebUri? url) {
     return null;
   }
 
@@ -1095,7 +1097,7 @@ class InAppBrowser {
   ///
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewRenderProcessClient.onRenderProcessResponsive](https://developer.android.com/reference/android/webkit/WebViewRenderProcessClient#onRenderProcessResponsive(android.webkit.WebView,%20android.webkit.WebViewRenderProcess)))
-  Future<WebViewRenderProcessAction?>? onRenderProcessResponsive(Uri? url) {
+  Future<WebViewRenderProcessAction?>? onRenderProcessResponsive(WebUri? url) {
     return null;
   }
 
@@ -1125,7 +1127,7 @@ class InAppBrowser {
   ///
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewClient.onFormResubmission](https://developer.android.com/reference/android/webkit/WebViewClient#onFormResubmission(android.webkit.WebView,%20android.os.Message,%20android.os.Message)))
-  Future<FormResubmissionAction?>? onFormResubmission(Uri? url) {
+  Future<FormResubmissionAction?>? onFormResubmission(WebUri? url) {
     return null;
   }
 
@@ -1157,7 +1159,7 @@ class InAppBrowser {
   ///
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebChromeClient.onReceivedTouchIconUrl](https://developer.android.com/reference/android/webkit/WebChromeClient#onReceivedTouchIconUrl(android.webkit.WebView,%20java.lang.String,%20boolean)))
-  void onReceivedTouchIconUrl(Uri url, bool precomposed) {}
+  void onReceivedTouchIconUrl(WebUri url, bool precomposed) {}
 
   ///Use [onJsBeforeUnload] instead.
   @Deprecated('Use onJsBeforeUnload instead')
@@ -1194,6 +1196,25 @@ class InAppBrowser {
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewClient.onReceivedLoginRequest](https://developer.android.com/reference/android/webkit/WebViewClient#onReceivedLoginRequest(android.webkit.WebView,%20java.lang.String,%20java.lang.String,%20java.lang.String)))
   void onReceivedLoginRequest(LoginRequest loginRequest) {}
+
+  ///Notify the host application that the given permission request has been canceled. Any related UI should therefore be hidden.
+  ///
+  ///[permissionRequest] represents the permission request that needs be canceled
+  ///with an array of resources the web content wants to access
+  ///and the origin of the web page which is trying to access the restricted resources.
+  ///
+  ///**NOTE for Android**: available only on Android 21+.
+  ///
+  ///**Supported Platforms/Implementations**:
+  ///- Android native WebView ([Official API - WebChromeClient.onPermissionRequestCanceled](https://developer.android.com/reference/android/webkit/WebChromeClient#onPermissionRequestCanceled(android.webkit.PermissionRequest)))
+  void onPermissionRequestCanceled(PermissionRequest permissionRequest) {}
+
+  ///Request display and focus for this WebView.
+  ///This may happen due to another WebView opening a link in this WebView and requesting that this WebView be displayed.
+  ///
+  ///**Supported Platforms/Implementations**:
+  ///- Android native WebView ([Official API - WebChromeClient.onRequestFocus](https://developer.android.com/reference/android/webkit/WebChromeClient#onRequestFocus(android.webkit.WebView)))
+  void onRequestFocus() {}
 
   ///Use [onWebContentProcessDidTerminate] instead.
   @Deprecated('Use onWebContentProcessDidTerminate instead')
@@ -1276,6 +1297,7 @@ class InAppBrowser {
   ) {}
 
   ///Event fired when a change in the microphone capture state occurred.
+  ///Event fired when a change in the microphone capture state occurred.
   ///
   ///**NOTE for iOS**: available only on iOS 15.0+.
   ///
@@ -1288,6 +1310,16 @@ class InAppBrowser {
     MediaCaptureState? oldState,
     MediaCaptureState? newState,
   ) {}
+
+  ///Event fired when the content size of the [WebView] changes.
+  ///
+  ///[oldContentSize] represents the old content size value.
+  ///
+  ///[newContentSize] represents the new content size value.
+  ///
+  ///**Supported Platforms/Implementations**:
+  ///- iOS
+  void onContentSizeChanged(Size oldContentSize, Size newContentSize) {}
 
   void throwIfAlreadyOpened({String message = ''}) {
     if (this.isOpened()) {

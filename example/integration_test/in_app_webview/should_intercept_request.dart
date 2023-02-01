@@ -45,8 +45,6 @@ void shouldInterceptRequest() {
     </body>
 </html>
                     """),
-          initialSettings:
-              InAppWebViewSettings(useShouldInterceptRequest: true),
           onWebViewCreated: (controller) {
             controllerCompleter.complete(controller);
           },

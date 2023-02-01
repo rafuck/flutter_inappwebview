@@ -9,22 +9,22 @@ part of 'web_history_item.dart';
 ///A convenience class for accessing fields in an entry in the back/forward list of a [WebView].
 ///Each [WebHistoryItem] is a snapshot of the requested history item.
 class WebHistoryItem {
-  ///Original url of this history item.
-  Uri? originalUrl;
-
-  ///Document title of this history item.
-  String? title;
-
-  ///Url of this history item.
-  Uri? url;
-
   ///0-based position index in the back-forward [WebHistory.list].
   int? index;
 
   ///Position offset respect to the currentIndex of the back-forward [WebHistory.list].
   int? offset;
+
+  ///Original url of this history item.
+  WebUri? originalUrl;
+
+  ///Document title of this history item.
+  String? title;
+
+  ///Url of this history item.
+  WebUri? url;
   WebHistoryItem(
-      {this.originalUrl, this.title, this.url, this.index, this.offset});
+      {this.index, this.offset, this.originalUrl, this.title, this.url});
 
   ///Gets a possible [WebHistoryItem] instance from a [Map] value.
   static WebHistoryItem? fromMap(Map<String, dynamic>? map) {
@@ -32,12 +32,12 @@ class WebHistoryItem {
       return null;
     }
     final instance = WebHistoryItem(
-      originalUrl:
-          map['originalUrl'] != null ? Uri.tryParse(map['originalUrl']) : null,
-      title: map['title'],
-      url: map['url'] != null ? Uri.tryParse(map['url']) : null,
       index: map['index'],
       offset: map['offset'],
+      originalUrl:
+          map['originalUrl'] != null ? WebUri(map['originalUrl']) : null,
+      title: map['title'],
+      url: map['url'] != null ? WebUri(map['url']) : null,
     );
     return instance;
   }
@@ -45,11 +45,11 @@ class WebHistoryItem {
   ///Converts instance to a map.
   Map<String, dynamic> toMap() {
     return {
+      "index": index,
+      "offset": offset,
       "originalUrl": originalUrl?.toString(),
       "title": title,
       "url": url?.toString(),
-      "index": index,
-      "offset": offset,
     };
   }
 
@@ -60,6 +60,6 @@ class WebHistoryItem {
 
   @override
   String toString() {
-    return 'WebHistoryItem{originalUrl: $originalUrl, title: $title, url: $url, index: $index, offset: $offset}';
+    return 'WebHistoryItem{index: $index, offset: $offset, originalUrl: $originalUrl, title: $title, url: $url}';
   }
 }

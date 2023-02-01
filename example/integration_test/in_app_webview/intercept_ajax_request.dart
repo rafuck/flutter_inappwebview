@@ -54,10 +54,6 @@ void interceptAjaxRequest() {
     </body>
 </html>
                     """),
-            initialSettings: InAppWebViewSettings(
-              clearCache: true,
-              useShouldInterceptAjaxRequest: true,
-            ),
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
@@ -144,10 +140,6 @@ void interceptAjaxRequest() {
     </body>
 </html>
                     """),
-            initialSettings: InAppWebViewSettings(
-              clearCache: true,
-              useShouldInterceptAjaxRequest: true,
-            ),
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
@@ -234,10 +226,6 @@ void interceptAjaxRequest() {
     </body>
 </html>
                     """),
-            initialSettings: InAppWebViewSettings(
-              clearCache: true,
-              useShouldInterceptAjaxRequest: true,
-            ),
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
@@ -322,10 +310,6 @@ void interceptAjaxRequest() {
     </body>
 </html>
                     """),
-            initialSettings: InAppWebViewSettings(
-              clearCache: true,
-              useShouldInterceptAjaxRequest: true,
-            ),
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },

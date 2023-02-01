@@ -33,14 +33,10 @@ void shouldOverrideUrlLoading() {
           textDirection: TextDirection.ltr,
           child: InAppWebView(
             key: GlobalKey(),
-            initialUrlRequest: URLRequest(url: Uri.parse(pageEncoded)),
+            initialUrlRequest: URLRequest(url: WebUri(pageEncoded)),
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
-            initialSettings: InAppWebViewSettings(
-              javaScriptEnabled: true,
-              useShouldOverrideUrlLoading: true,
-            ),
             shouldOverrideUrlLoading: (controller, navigationAction) async {
               return (navigationAction.request.url!.host
                       .contains(TEST_URL_4.host.replaceAll("www.", "")))
@@ -86,14 +82,10 @@ void shouldOverrideUrlLoading() {
           textDirection: TextDirection.ltr,
           child: InAppWebView(
             key: GlobalKey(),
-            initialUrlRequest: URLRequest(url: Uri.parse(pageEncoded)),
+            initialUrlRequest: URLRequest(url: WebUri(pageEncoded)),
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
-            initialSettings: InAppWebViewSettings(
-              javaScriptEnabled: true,
-              useShouldOverrideUrlLoading: true,
-            ),
             shouldOverrideUrlLoading: (controller, navigationAction) async {
               var isFirstLoad = navigationAction.request.url!.scheme == "data";
               return (isFirstLoad ||
@@ -145,14 +137,10 @@ void shouldOverrideUrlLoading() {
           textDirection: TextDirection.ltr,
           child: InAppWebView(
             key: GlobalKey(),
-            initialUrlRequest: URLRequest(url: Uri.parse(pageEncoded)),
+            initialUrlRequest: URLRequest(url: WebUri(pageEncoded)),
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
-            initialSettings: InAppWebViewSettings(
-              javaScriptEnabled: true,
-              useShouldOverrideUrlLoading: true,
-            ),
             shouldOverrideUrlLoading: (controller, navigationAction) async {
               return (navigationAction.request.url!.host
                       .contains(TEST_URL_4.host.replaceAll("www.", "")))
@@ -197,14 +185,10 @@ void shouldOverrideUrlLoading() {
           textDirection: TextDirection.ltr,
           child: InAppWebView(
             key: GlobalKey(),
-            initialUrlRequest: URLRequest(url: Uri.parse(pageEncoded)),
+            initialUrlRequest: URLRequest(url: WebUri(pageEncoded)),
             onWebViewCreated: (controller) {
               controllerCompleter.complete(controller);
             },
-            initialSettings: InAppWebViewSettings(
-              javaScriptEnabled: true,
-              useShouldOverrideUrlLoading: true,
-            ),
             shouldOverrideUrlLoading: (controller, navigationAction) async {
               var action = NavigationActionPolicy.CANCEL;
               action = await Future<NavigationActionPolicy>.delayed(

@@ -1,11 +1,26 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_inappwebview_internal_annotations/flutter_inappwebview_internal_annotations.dart';
 
 import '../types/main.dart';
+import '../types/print_job_color_mode.dart';
+import '../types/print_job_disposition.dart';
+import '../types/print_job_duplex_mode.dart';
+import '../types/print_job_media_size.dart';
+import '../types/print_job_orientation.dart';
+import '../types/print_job_output_type.dart';
+import '../types/print_job_page_order.dart';
+import '../types/print_job_pagination_mode.dart';
+import '../types/print_job_rendering_quality.dart';
+import '../types/print_job_resolution.dart';
 import '../util.dart';
+import '../web_uri.dart';
 import 'print_job_controller.dart';
 
+part 'print_job_settings.g.dart';
+
 ///Class that represents the settings of a [PrintJobController].
-class PrintJobSettings {
+@ExchangeableObject(copyMethod: true)
+class PrintJobSettings_ {
   ///Set this to `true` to handle the [PrintJobController].
   ///Otherwise, it will be handled and disposed automatically by the system.
   ///The default value is `false`.
@@ -14,7 +29,7 @@ class PrintJobSettings {
   ///- Android native WebView
   ///- iOS
   ///- MacOS
-  bool handledByClient;
+  bool? handledByClient;
 
   ///The name of the print job.
   ///An application should set this property to a name appropriate to the content being printed.
@@ -30,7 +45,7 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- iOS
-  bool animated;
+  bool? animated;
 
   ///The orientation of the printed content, portrait or landscape.
   ///
@@ -38,7 +53,7 @@ class PrintJobSettings {
   ///- Android native WebView
   ///- iOS
   ///- MacOS
-  PrintJobOrientation? orientation;
+  PrintJobOrientation_? orientation;
 
   ///The number of pages to render.
   ///
@@ -53,7 +68,7 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- iOS
-  PrintJobRenderingQuality? forceRenderingQuality;
+  PrintJobRenderingQuality_? forceRenderingQuality;
 
   ///The margins for each printed page.
   ///Margins define the white space around the content where the left margin defines
@@ -68,14 +83,14 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView
-  PrintJobMediaSize? mediaSize;
+  PrintJobMediaSize_? mediaSize;
 
   ///The color mode.
   ///
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView
   ///- MacOS
-  PrintJobColorMode? colorMode;
+  PrintJobColorMode_? colorMode;
 
   ///The duplex mode to use for the print job.
   ///
@@ -84,19 +99,19 @@ class PrintJobSettings {
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView
   ///- iOS
-  PrintJobDuplexMode? duplexMode;
+  PrintJobDuplexMode_? duplexMode;
 
   ///The kind of printable content.
   ///
   ///**Supported Platforms/Implementations**:
   ///- iOS
-  PrintJobOutputType? outputType;
+  PrintJobOutputType_? outputType;
 
   ///The supported resolution in DPI (dots per inch).
   ///
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView
-  PrintJobResolution? resolution;
+  PrintJobResolution_? resolution;
 
   ///A Boolean value that determines whether the printing options include the number of copies.
   ///The default value is `true`.
@@ -104,7 +119,7 @@ class PrintJobSettings {
   ///**Supported Platforms/Implementations**:
   ///- iOS
   ///- MacOS
-  bool showsNumberOfCopies;
+  bool? showsNumberOfCopies;
 
   ///A Boolean value that determines whether the paper selection menu displays.
   ///The default value of this property is `false`.
@@ -113,7 +128,7 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- iOS
-  bool showsPaperSelectionForLoadedPapers;
+  bool? showsPaperSelectionForLoadedPapers;
 
   ///A Boolean value that determines whether the printing options include the paper orientation control when available.
   ///The default value is `true`.
@@ -123,49 +138,49 @@ class PrintJobSettings {
   ///**Supported Platforms/Implementations**:
   ///- iOS
   ///- MacOS
-  bool showsPaperOrientation;
+  bool? showsPaperOrientation;
 
   ///A Boolean value that determines whether the print panel includes a control for manipulating the paper size of the printer.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool showsPaperSize;
+  bool? showsPaperSize;
 
   ///A Boolean value that determines whether the Print panel includes a control for scaling the printed output.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool showsScaling;
+  bool? showsScaling;
 
   ///A Boolean value that determines whether the Print panel includes a set of fields for manipulating the range of pages being printed.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool showsPageRange;
+  bool? showsPageRange;
 
   ///A Boolean value that determines whether the Print panel includes a separate accessory view for manipulating the paper size, orientation, and scaling attributes.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool showsPageSetupAccessory;
+  bool? showsPageSetupAccessory;
 
   ///A Boolean value that determines whether the Print panel displays a built-in preview of the document contents.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool showsPreview;
+  bool? showsPreview;
 
   ///A Boolean value that determines whether the Print panel includes an additional selection option for paper range.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool showsPrintSelection;
+  bool? showsPrintSelection;
 
   ///A Boolean value that determines whether the print operation displays a print panel.
   ///The default value is `true`.
@@ -176,7 +191,7 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool showsPrintPanel;
+  bool? showsPrintPanel;
 
   ///A Boolean value that determines whether the print operation displays a progress panel.
   ///The default value is `true`.
@@ -187,7 +202,7 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool showsProgressPanel;
+  bool? showsProgressPanel;
 
   ///The height of the page footer.
   ///
@@ -238,13 +253,13 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  PrintJobDisposition? jobDisposition;
+  PrintJobDisposition_? jobDisposition;
 
   ///An URL containing the location to which the job file will be saved when the [jobDisposition] is [PrintJobDisposition.SAVE].
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  Uri? jobSavingURL;
+  WebUri? jobSavingURL;
 
   ///The name of the currently selected paper size.
   ///
@@ -256,47 +271,47 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  PrintJobPaginationMode? horizontalPagination;
+  PrintJobPaginationMode_? horizontalPagination;
 
   ///The vertical pagination to the specified mode.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  PrintJobPaginationMode? verticalPagination;
+  PrintJobPaginationMode_? verticalPagination;
 
   ///Indicates whether the image is centered horizontally.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool isHorizontallyCentered;
+  bool? isHorizontallyCentered;
 
   ///Indicates whether the image is centered vertically.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool isVerticallyCentered;
+  bool? isVerticallyCentered;
 
   ///The print order for the pages of the operation.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  PrintJobPageOrder? pageOrder;
+  PrintJobPageOrder_? pageOrder;
 
   ///Whether the print operation should spawn a separate thread in which to run itself.
   ///The default value is `true`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool canSpawnSeparateThread;
+  bool? canSpawnSeparateThread;
 
   ///How many copies to print.
   ///The default value is `1`.
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  int copies;
+  int? copies;
 
   ///An integer value that specifies the first page in the print job.
   ///
@@ -315,7 +330,7 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool detailedErrorReporting;
+  bool? detailedErrorReporting;
 
   ///A fax number.
   ///
@@ -328,7 +343,7 @@ class PrintJobSettings {
   ///
   ///**Supported Platforms/Implementations**:
   ///- MacOS
-  bool headerAndFooter;
+  bool? headerAndFooter;
 
   ///If `true`, collates output.
   ///
@@ -354,7 +369,7 @@ class PrintJobSettings {
   ///- MacOS
   int? time;
 
-  PrintJobSettings(
+  PrintJobSettings_(
       {this.handledByClient = false,
       this.jobName,
       this.animated = true,
@@ -402,129 +417,4 @@ class PrintJobSettings {
       this.pagesAcross,
       this.pagesDown,
       this.time});
-
-  ///Gets a [PrintJobSettings] instance from a [Map] value.
-  factory PrintJobSettings.fromMap(Map<String, dynamic> map) {
-    return PrintJobSettings(
-        handledByClient: map["handledByClient"],
-        jobName: map["jobName"],
-        animated: map["animated"],
-        orientation: PrintJobOrientation.fromNativeValue(map["orientation"]),
-        numberOfPages: map["numberOfPages"],
-        forceRenderingQuality: PrintJobRenderingQuality.fromNativeValue(
-            map["forceRenderingQuality"]),
-        margins: MapEdgeInsets.fromMap(map["margins"]?.cast<String, dynamic>()),
-        mediaSize: PrintJobMediaSize.fromMap(
-            map["mediaSize"]?.cast<String, dynamic>()),
-        colorMode: PrintJobColorMode.fromNativeValue(map["colorMode"]),
-        duplexMode: PrintJobDuplexMode.fromNativeValue(map["duplexMode"]),
-        outputType: PrintJobOutputType.fromNativeValue(map["outputType"]),
-        resolution: PrintJobResolution.fromMap(
-            map["resolution"]?.cast<String, dynamic>()),
-        showsNumberOfCopies: map["showsNumberOfCopies"],
-        showsPaperSelectionForLoadedPapers:
-            map["showsPaperSelectionForLoadedPapers"],
-        showsPaperOrientation: map["showsPaperOrientation"],
-        maximumContentHeight: map["maximumContentHeight"],
-        maximumContentWidth: map["maximumContentWidth"],
-        footerHeight: map["footerHeight"],
-        headerHeight: map["headerHeight"],
-        showsPaperSize: map["showsPaperSize"],
-        showsScaling: map["showsScaling"],
-        showsPageRange: map["showsPageRange"],
-        showsPageSetupAccessory: map["showsPageSetupAccessory"],
-        showsPreview: map["showsPreview"],
-        showsPrintSelection: map["showsPrintSelection"],
-        scalingFactor: map["scalingFactor"],
-        showsPrintPanel: map["showsPrintPanel"],
-        showsProgressPanel: map["showsProgressPanel"],
-        jobDisposition:
-            PrintJobDisposition.fromNativeValue(map["jobDisposition"]),
-        jobSavingURL: map["jobSavingURL"] != null
-            ? Uri.tryParse(map["jobSavingURL"])
-            : null,
-        paperName: map["paperName"],
-        horizontalPagination:
-            PrintJobPaginationMode.fromNativeValue(map["horizontalPagination"]),
-        verticalPagination:
-            PrintJobPaginationMode.fromNativeValue(map["verticalPagination"]),
-        isHorizontallyCentered: map["isHorizontallyCentered"],
-        isVerticallyCentered: map["isVerticallyCentered"],
-        pageOrder: PrintJobPageOrder.fromNativeValue(map["pageOrder"]),
-        canSpawnSeparateThread: map["canSpawnSeparateThread"],
-        copies: map["copies"],
-        firstPage: map["firstPage"],
-        lastPage: map["lastPage"],
-        detailedErrorReporting: map["detailedErrorReporting"],
-        faxNumber: map["faxNumber"],
-        headerAndFooter: map["headerAndFooter"],
-        mustCollate: map["mustCollate"],
-        pagesAcross: map["pagesAcross"],
-        pagesDown: map["pagesDown"],
-        time: map["time"]);
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      "handledByClient": handledByClient,
-      "jobName": jobName,
-      "animated": animated,
-      "orientation": orientation?.toNativeValue(),
-      "numberOfPages": numberOfPages,
-      "forceRenderingQuality": forceRenderingQuality?.toNativeValue(),
-      "margins": margins?.toMap(),
-      "mediaSize": mediaSize?.toMap(),
-      "colorMode": colorMode?.toNativeValue(),
-      "duplexMode": duplexMode?.toNativeValue(),
-      "outputType": outputType?.toNativeValue(),
-      "resolution": resolution?.toMap(),
-      "showsNumberOfCopies": showsNumberOfCopies,
-      "showsPaperSelectionForLoadedPapers": showsPaperSelectionForLoadedPapers,
-      "showsPaperOrientation": showsPaperOrientation,
-      "maximumContentHeight": maximumContentHeight,
-      "maximumContentWidth": maximumContentWidth,
-      "footerHeight": footerHeight,
-      "headerHeight": headerHeight,
-      "showsPaperSize": showsPaperSize,
-      "showsScaling": showsScaling,
-      "showsPageRange": showsPageRange,
-      "showsPageSetupAccessory": showsPageSetupAccessory,
-      "showsPreview": showsPreview,
-      "showsPrintSelection": showsPrintSelection,
-      "scalingFactor": scalingFactor,
-      "showsPrintPanel": showsPrintPanel,
-      "showsProgressPanel": showsProgressPanel,
-      "jobDisposition": jobDisposition?.toNativeValue(),
-      "jobSavingURL": jobSavingURL.toString(),
-      "paperName": paperName,
-      "horizontalPagination": horizontalPagination?.toNativeValue(),
-      "verticalPagination": verticalPagination?.toNativeValue(),
-      "isHorizontallyCentered": isHorizontallyCentered,
-      "isVerticallyCentered": isVerticallyCentered,
-      "pageOrder": pageOrder?.toNativeValue(),
-      "canSpawnSeparateThread": canSpawnSeparateThread,
-      "copies": copies,
-      "firstPage": firstPage,
-      "lastPage": lastPage,
-      "detailedErrorReporting": detailedErrorReporting,
-      "faxNumber": faxNumber,
-      "headerAndFooter": headerAndFooter,
-      "mustCollate": mustCollate,
-      "pagesAcross": pagesAcross,
-      "pagesDown": pagesDown,
-      "time": time
-    };
-  }
-
-  PrintJobSettings copy() {
-    return PrintJobSettings.fromMap(toMap());
-  }
-
-  Map<String, dynamic> toJson() {
-    return toMap();
-  }
-
-  String toString() {
-    return toMap().toString();
-  }
 }

@@ -67,7 +67,17 @@ class ExchangeableObjectGenerator
     final deprecatedFields = <VariableElement>[];
     final constructorFields = <String>[];
     final superConstructorFields = <String>[];
-    for (final entry in visitor.fields.entries) {
+
+    final fieldEntriesSorted = visitor.fields.entries.toList();
+    fieldEntriesSorted.sort((a, b) => a.key.compareTo(b.key));
+
+    final fieldValuesSorted = visitor.fields.values.toList();
+    fieldValuesSorted.sort((a, b) => a.name.compareTo(b.name));
+
+    final methodEntriesSorted = visitor.methods.entries.toList();
+    fieldEntriesSorted.sort((a, b) => a.key.compareTo(b.key));
+
+    for (final entry in fieldEntriesSorted) {
       final fieldName = entry.key;
       final fieldElement = entry.value;
       if (!fieldElement.isPrivate) {
@@ -257,6 +267,13 @@ class ExchangeableObjectGenerator
             } else if (hasFromValue && deprecatedHasToValue) {
               classBuffer.write(fieldTypeElement.name!.replaceFirst("_", "") +
                   '.fromValue($deprecatedFieldName${deprecatedIsNullable ? '?' : ''}.toValue())${!isNullable ? '!' : ''}');
+            } else if (deprecatedField.type.getDisplayString(withNullability: false) == "Uri" &&
+                       fieldElement.type.getDisplayString(withNullability: false) == "WebUri") {
+              if (deprecatedIsNullable) {
+                classBuffer.write("($deprecatedFieldName != null ? WebUri.uri($deprecatedFieldName!) : ${isNullable ? "null" : "WebUri('')"})");
+              } else {
+                classBuffer.write("WebUri.uri($deprecatedFieldName)");
+              }
             } else {
               classBuffer.write(deprecatedFieldName);
             }
@@ -288,7 +305,7 @@ class ExchangeableObjectGenerator
       if (superClass != null) {
         fieldElements.addAll(superClass.element2.fields);
       }
-      fieldElements.addAll(visitor.fields.values);
+      fieldElements.addAll(fieldValuesSorted);
       final nonRequiredFields = <String>[];
       final requiredFields = <String>[];
       for (final fieldElement in fieldElements) {
@@ -346,7 +363,7 @@ class ExchangeableObjectGenerator
       classBuffer.writeln('}');
     }
 
-    for (final entry in visitor.methods.entries) {
+    for (final entry in methodEntriesSorted) {
       final methodElement = entry.value;
       if (Util.methodHasIgnore(methodElement)) {
         continue;
@@ -375,7 +392,7 @@ class ExchangeableObjectGenerator
       classBuffer.writeln('///Converts instance to a map.');
       classBuffer.writeln('Map<String, dynamic> toMap() {');
       classBuffer.writeln('return {');
-      for (final entry in visitor.methods.entries) {
+      for (final entry in methodEntriesSorted) {
         final methodElement = entry.value;
         final toMapMergeWith = _coreCheckerObjectMethod
             .firstAnnotationOf(methodElement)
@@ -396,7 +413,7 @@ class ExchangeableObjectGenerator
           }
         }
       }
-      for (final entry in visitor.fields.entries) {
+      for (final entry in fieldEntriesSorted) {
         final fieldElement = entry.value;
         if (!fieldElement.isPrivate &&
             !fieldElement.hasDeprecated &&
@@ -468,7 +485,7 @@ class ExchangeableObjectGenerator
           }
         }
       }
-      for (final entry in visitor.fields.entries) {
+      for (final entry in fieldEntriesSorted) {
         final fieldName = entry.key;
         final fieldElement = entry.value;
         if (!fieldElement.isPrivate &&
@@ -495,6 +512,12 @@ class ExchangeableObjectGenerator
         return "(Uri.tryParse($value) ?? Uri())";
       } else {
         return "$value != null ? Uri.tryParse($value) : null";
+      }
+    } else if (elementType.getDisplayString(withNullability: false) == "WebUri") {
+      if (!isNullable) {
+        return "WebUri($value)";
+      } else {
+        return "$value != null ? WebUri($value) : null";
       }
     } else if (elementType.getDisplayString(withNullability: false) ==
         "Color") {
@@ -572,6 +595,8 @@ class ExchangeableObjectGenerator
     final fieldTypeElement = elementType.element2;
     final isNullable = Util.typeIsNullable(elementType);
     if (elementType.getDisplayString(withNullability: false) == "Uri") {
+      return fieldName + (isNullable ? '?' : '') + '.toString()';
+    } else if (elementType.getDisplayString(withNullability: false) == "WebUri") {
       return fieldName + (isNullable ? '?' : '') + '.toString()';
     } else if (elementType.getDisplayString(withNullability: false) ==
         "Color") {

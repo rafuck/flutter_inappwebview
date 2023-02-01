@@ -8,6 +8,7 @@ import android.animation.PropertyValuesHolder;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -47,6 +48,7 @@ import android.webkit.WebBackForwardList;
 import android.webkit.WebHistoryItem;
 import android.webkit.WebSettings;
 import android.webkit.WebStorage;
+import android.webkit.WebViewClient;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -124,6 +126,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   @Nullable
   public InAppWebViewClient inAppWebViewClient;
   @Nullable
+  public InAppWebViewClientCompat inAppWebViewClientCompat;
+  @Nullable
   public InAppWebViewChromeClient inAppWebViewChromeClient;
   @Nullable
   public InAppWebViewRenderProcessClient inAppWebViewRenderProcessClient;
@@ -161,7 +165,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   public Map<String, WebMessageChannel> webMessageChannels = new HashMap<>();
   public List<WebMessageListener> webMessageListeners = new ArrayList<>();
 
-  private List<UserScript> initialUserOnlyScript = new ArrayList<>();
+  private List<UserScript> initialUserOnlyScripts = new ArrayList<>();
 
   @Nullable
   public FindInteractionController findInteractionController;
@@ -193,9 +197,39 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     this.windowId = windowId;
     this.customSettings = customSettings;
     this.contextMenu = contextMenu;
-    this.initialUserOnlyScript = userScripts;
+    this.initialUserOnlyScripts = userScripts;
     if (plugin != null && plugin.activity != null) {
       plugin.activity.registerForContextMenu(this);
+    }
+  }
+
+  public WebViewClient createWebViewClient(InAppBrowserDelegate inAppBrowserDelegate) {
+    // bug https://bugs.chromium.org/p/chromium/issues/detail?id=925887
+    PackageInfo packageInfo = WebViewCompat.getCurrentWebViewPackage(getContext());
+    if (packageInfo == null) {
+      Log.d(LOG_TAG, "Using InAppWebViewClient implementation");
+      return new InAppWebViewClient(inAppBrowserDelegate);
+    }
+
+    boolean isChromiumWebView = "com.android.webview".equals(packageInfo.packageName) ||
+                                "com.google.android.webview".equals(packageInfo.packageName) ||
+                                "com.android.chrome".equals(packageInfo.packageName);
+    boolean isChromiumWebViewBugFixed = false;
+    if (isChromiumWebView) {
+      String versionName = packageInfo.versionName != null ? packageInfo.versionName : "";
+      try {
+        int majorVersion = versionName.contains(".") ?
+                Integer.parseInt(versionName.split("\\.")[0]) : 0;
+        isChromiumWebViewBugFixed = majorVersion >= 73;
+      } catch (NumberFormatException ignored) {}
+    }
+
+    if (isChromiumWebViewBugFixed || !isChromiumWebView) {
+      Log.d(LOG_TAG, "Using InAppWebViewClientCompat implementation");
+      return new InAppWebViewClientCompat(inAppBrowserDelegate);
+    } else {
+      Log.d(LOG_TAG, "Using InAppWebViewClient implementation");
+      return new InAppWebViewClient(inAppBrowserDelegate);
     }
   }
 
@@ -211,15 +245,27 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     inAppWebViewChromeClient = new InAppWebViewChromeClient(plugin, this, inAppBrowserDelegate);
     setWebChromeClient(inAppWebViewChromeClient);
 
-    inAppWebViewClient = new InAppWebViewClient(inAppBrowserDelegate);
-    setWebViewClient(inAppWebViewClient);
+    WebViewClient webViewClient = createWebViewClient(inAppBrowserDelegate);
+    if (webViewClient instanceof InAppWebViewClientCompat) {
+      inAppWebViewClientCompat = (InAppWebViewClientCompat) webViewClient;
+      setWebViewClient(inAppWebViewClientCompat);
+    } else if (webViewClient instanceof InAppWebViewClient) {
+      inAppWebViewClient = (InAppWebViewClient) webViewClient;
+      setWebViewClient(inAppWebViewClient);
+    }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_VIEW_RENDERER_CLIENT_BASIC_USAGE)) {
       inAppWebViewRenderProcessClient = new InAppWebViewRenderProcessClient();
       WebViewCompat.setWebViewRenderProcessClient(this, inAppWebViewRenderProcessClient);
     }
 
-    prepareAndAddUserScripts();
+    if (windowId == null || !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+      // for some reason, if a WebView is created using a window id,
+      // the initial plugin and user scripts injected
+      // with WebViewCompat.addDocumentStartJavaScript will not be added!
+      // https://github.com/pichillilorenzo/flutter_inappwebview/issues/1455
+      prepareAndAddUserScripts();
+    }
 
     if (customSettings.useOnDownloadStart)
       setDownloadListener(new DownloadStartListener());
@@ -382,7 +428,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
 
     if (WebViewFeature.isFeatureSupported(WebViewFeature.SUPPRESS_ERROR_PAGE)) {
-      WebSettingsCompat.setWillSuppressErrorPage(settings, customSettings.willSuppressErrorPage);
+      WebSettingsCompat.setWillSuppressErrorPage(settings, customSettings.disableDefaultErrorPage);
     }
     if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, customSettings.algorithmicDarkeningAllowed);
@@ -511,7 +557,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     });
   }
 
-  private void prepareAndAddUserScripts() {
+  public void prepareAndAddUserScripts() {
     userContentController.addPluginScript(PromisePolyfillJS.PROMISE_POLYFILL_JS_PLUGIN_SCRIPT);
     userContentController.addPluginScript(JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_JS_PLUGIN_SCRIPT);
     userContentController.addPluginScript(ConsoleLogJS.CONSOLE_LOG_JS_PLUGIN_SCRIPT);
@@ -530,7 +576,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     if (!customSettings.useHybridComposition) {
       userContentController.addPluginScript(PluginScriptsUtil.CHECK_GLOBAL_KEY_DOWN_EVENT_TO_HIDE_CONTEXT_MENU_JS_PLUGIN_SCRIPT);
     }
-    this.userContentController.addUserOnlyScripts(this.initialUserOnlyScript);
+    this.userContentController.addUserOnlyScripts(this.initialUserOnlyScripts);
   }
 
   public void setIncognito(boolean enabled) {
@@ -1033,10 +1079,10 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
         setHorizontalScrollbarTrackDrawable(new ColorDrawable(Color.parseColor(newCustomSettings.horizontalScrollbarTrackColor)));
     }
 
-    if (newSettingsMap.get("willSuppressErrorPage") != null &&
-            !Util.objEquals(customSettings.willSuppressErrorPage, newCustomSettings.willSuppressErrorPage) &&
+    if (newSettingsMap.get("disableDefaultErrorPage") != null &&
+            !Util.objEquals(customSettings.disableDefaultErrorPage, newCustomSettings.disableDefaultErrorPage) &&
             WebViewFeature.isFeatureSupported(WebViewFeature.SUPPRESS_ERROR_PAGE)) {
-      WebSettingsCompat.setWillSuppressErrorPage(settings, newCustomSettings.willSuppressErrorPage);
+      WebSettingsCompat.setWillSuppressErrorPage(settings, newCustomSettings.disableDefaultErrorPage);
     }
     if (newSettingsMap.get("algorithmicDarkeningAllowed") != null &&
             !Util.objEquals(customSettings.algorithmicDarkeningAllowed, newCustomSettings.algorithmicDarkeningAllowed) &&
@@ -1982,6 +2028,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     evaluateJavaScriptContentWorldCallbacks.clear();
     inAppBrowserDelegate = null;
     inAppWebViewChromeClient = null;
+    inAppWebViewClientCompat = null;
     inAppWebViewClient = null;
     javaScriptBridgeInterface = null;
     inAppWebViewRenderProcessClient = null;

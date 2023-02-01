@@ -114,7 +114,9 @@ public class InAppWebViewClient extends WebViewClient {
     return false;
   }
 
-  private void allowShouldOverrideUrlLoading(WebView webView, String url, Map<String, String> headers, boolean isForMainFrame) {
+  private void allowShouldOverrideUrlLoading(WebView webView, String url,
+                                             @Nullable Map<String, String> headers,
+                                             boolean isForMainFrame) {
     if (isForMainFrame) {
       // There isn't any way to load an URL for a frame that is not the main frame,
       // so call this only on main frame.
@@ -124,8 +126,11 @@ public class InAppWebViewClient extends WebViewClient {
         webView.loadUrl(url);
     }
   }
-  public void onShouldOverrideUrlLoading(final InAppWebView webView, final String url, final String method, final Map<String, String> headers,
-                                         final boolean isForMainFrame, boolean hasGesture, boolean isRedirect) {
+  public void onShouldOverrideUrlLoading(final InAppWebView webView, final String url,
+                                         final String method,
+                                         @Nullable final Map<String, String> headers,
+                                         final boolean isForMainFrame, boolean hasGesture,
+                                         boolean isRedirect) {
     URLRequest request = new URLRequest(url, method, null, headers);
     NavigationAction navigationAction = new NavigationAction(
             request,
@@ -289,11 +294,13 @@ public class InAppWebViewClient extends WebViewClient {
     }
   }
 
+  @SuppressLint("RestrictedApi")
   @Override
   public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
     final InAppWebView webView = (InAppWebView) view;
 
-    if (webView.customSettings.disableDefaultErrorPage) {
+    if (!WebViewFeature.isFeatureSupported(WebViewFeature.SUPPRESS_ERROR_PAGE) &&
+            webView.customSettings.disableDefaultErrorPage) {
       webView.stopLoading();
       webView.loadUrl("about:blank");
     }
@@ -307,7 +314,7 @@ public class InAppWebViewClient extends WebViewClient {
     }
 
     WebResourceRequestExt request = new WebResourceRequestExt(
-            Uri.parse(failingUrl),
+            failingUrl,
             null,
             false,
             false,
@@ -627,7 +634,8 @@ public class InAppWebViewClient extends WebViewClient {
 
     if (webView.webViewAssetLoaderExt != null && webView.webViewAssetLoaderExt.loader != null) {
       try {
-        WebResourceResponse webResourceResponse = webView.webViewAssetLoaderExt.loader.shouldInterceptRequest(request.getUrl());
+        final Uri uri = Uri.parse(request.getUrl());
+        WebResourceResponse webResourceResponse = webView.webViewAssetLoaderExt.loader.shouldInterceptRequest(uri);
         if (webResourceResponse != null) {
           return webResourceResponse;
         }
@@ -667,8 +675,11 @@ public class InAppWebViewClient extends WebViewClient {
       return null;
     }
 
-    final String url = request.getUrl().toString();
-    String scheme = request.getUrl().getScheme();
+    final String url = request.getUrl();
+    String scheme = url.split(":")[0].toLowerCase();
+    try {
+      scheme = Uri.parse(request.getUrl()).getScheme();
+    } catch (Exception ignored) {}
 
     if (webView.customSettings.resourceCustomSchemes != null && webView.customSettings.resourceCustomSchemes.contains(scheme)) {
       CustomSchemeResponse customSchemeResponse = null;
@@ -684,7 +695,7 @@ public class InAppWebViewClient extends WebViewClient {
       if (customSchemeResponse != null) {
         WebResourceResponse response = null;
         try {
-          response = webView.contentBlockerHandler.checkUrl(webView, url, customSchemeResponse.getContentType());
+          response = webView.contentBlockerHandler.checkUrl(webView, request, customSchemeResponse.getContentType());
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -699,7 +710,7 @@ public class InAppWebViewClient extends WebViewClient {
     WebResourceResponse response = null;
     if (webView.contentBlockerHandler.getRuleList().size() > 0) {
       try {
-        response = webView.contentBlockerHandler.checkUrl(webView, url);
+        response = webView.contentBlockerHandler.checkUrl(webView, request);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -710,7 +721,7 @@ public class InAppWebViewClient extends WebViewClient {
   @Override
   public WebResourceResponse shouldInterceptRequest(WebView view, final String url) {
     WebResourceRequestExt requestExt = new WebResourceRequestExt(
-            Uri.parse(url), null, false,
+            url, null, false,
             false, true, "GET"
     );
     return shouldInterceptRequest(view, requestExt);

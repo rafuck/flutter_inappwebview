@@ -1,3 +1,108 @@
+## 6.0.0-beta.22
+
+- Updated `window.flutter_inappwebview.callHandler` implementation: if there is an error/exception on Flutter/Dart side, the `callHandler` will reject the JavaScript promise with the error/exception message, so you can catch it also on JavaScript side
+- Fixed Android Web Storage Manager `deleteAllData` and `deleteOrigin` methods implementation
+- Fixed "Xiaomi store - Conflict of Privacy Permissions, android.permission.MY_READ_INSTALLED_PACKAGES" [#1462](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1462)
+- Fixed "Flutter 3.0.5 compilation issue" [#1475](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1475)
+
+## 6.0.0-beta.21
+
+- Fixed "Android plugin version 6 - UserScripts not executing on new tabs." [#1455](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1455)
+
+## 6.0.0-beta.20
+
+- Using Android `WebViewClientCompat` for Chromium-based WebView if the WebView package major version is >= 73 (https://bugs.chromium.org/p/chromium/issues/detail?id=925887)
+- Updated code docs
+- Fixed "Unexpected addWebMessageListener behaviour" [#1422](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1422)
+
+## 6.0.0-beta.19
+
+- Updated code docs
+- Fixed "Cannot Grant Permission at Android 21" [#1447](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1447)
+- Fixed some missing macOS asserts
+
+## 6.0.0-beta.18
+
+- Fixed `InAppWebViewSettings` automatic infer if `initialSettings` is `null`
+
+## 6.0.0-beta.17
+
+- Replaced `Uri.encodeFull` with `Uri.encodeComponent` to load html data correctly on Web platform 
+
+## 6.0.0-beta.16
+
+- Removed Android Hybrid Composition constraint to use the pull-to-refresh feature
+- Removed Android `com.squareup.okhttp3:okhttp` dependency
+
+## 6.0.0-beta.15
+
+- Automatically infer `useShouldOverrideUrlLoading`, `useOnLoadResource`, `useOnDownloadStart`, `useShouldInterceptAjaxRequest`, `useShouldInterceptFetchRequest`, `useShouldInterceptRequest`, `useOnRenderProcessGone`, `useOnNavigationResponse` settings if their value is `null` and the corresponding event is implemented by the WebView (`InAppWebView` and `HeadlessInAppWebView`, not `InAppBrowser`) before it's native initialization
+
+### BREAKING CHANGES
+
+- All `PrintJobSettings` properties are optionals
+- All `PullToRefreshSettings` properties are optionals
+- All `WebAuthenticationSessionSettings` properties are optionals
+
+## 6.0.0-beta.14
+
+- Fixed User Script remove methods
+- Fixed macOS available checks for XCode 14.1
+
+## 6.0.0-beta.13
+
+- Added `ContentBlockerActionType.BLOCK_COOKIES` and `ContentBlockerActionType.IGNORE_PREVIOUS_RULES` for iOS and macOS platforms
+- Updated `ContentBlockerTrigger.urlFilterIsCaseSensitive` for Android
+- Fixed Android `ContentBlockerActionType.CSS_DISPLAY_NONE` usage
+
+## 6.0.0-beta.12
+
+- Removed `willSuppressErrorPage` WebView Android setting in favor of `disableDefaultErrorPage`.
+- Added `isMultiProcessEnabled` static method on `InAppWebViewController` for Android
+- Added `onContentSizeChanged` WebView event for iOS
+- Added `onPermissionRequestCanceled`, `onRequestFocus` WebView events for Android
+- Added `defaultVideoPoster` WebView setting for Android
+- Added `TracingController` for Android WebViews
+
+### BREAKING CHANGES
+
+- Removed `willSuppressErrorPage` WebView Android setting. Use `disableDefaultErrorPage` instead.
+
+## 6.0.0-beta.11
+
+- Fixed "[webRTC / macOS] onPermissionRequest not called on HeadlessInAppWebView" [#1405](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1405)
+
+## 6.0.0-beta.10
+
+- Created `WebUri` class to replace `Uri` dart core type. Related to:
+  - "Uri.tryParse will make the host to be lowercase" [#1402](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1402)
+  - "An error occurs when using a specific intent" [#1328](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1328)
+  - "Android shouldOverrideUrlLoading not working" [#1350](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1350)
+
+### BREAKING CHANGES
+
+- Replaced the usage of `Uri` type with the new `WebUri` type
+
+## 6.0.0-beta.9
+
+- Added `headers`, `otherLikelyURLs`, `referrer` arguments on `ChromeSafariBrowser.open` method for Android
+- Added `onNavigationEvent`, `onServiceConnected`, `onRelationshipValidationResult` events on `ChromeSafariBrowser` for Android
+- Added `mayLaunchUrl`, `launchUrl`, `updateActionButton`, `validateRelationship`, `setSecondaryToolbar`, `updateSecondaryToolbar` methods on `ChromeSafariBrowser` for Android
+- Added `startAnimations`, `exitAnimations`, `navigationBarColor`, `navigationBarDividerColor`, `secondaryToolbarColor`, `alwaysUseBrowserUI` ChromeSafariBrowser settings for Android
+- Added `getMaxToolbarItems` static method on `ChromeSafariBrowser` for Android
+- Added `ChromeSafariBrowserMenuItem.image` property for iOS
+- Added `didLoadSuccessfully` optional argument on `ChromeSafariBrowser.onCompletedInitialLoad` event for iOS
+- Added `onInitialLoadDidRedirect`, `onWillOpenInBrowser` events on `ChromeSafariBrowser` for iOS
+- Added `activityButton`, `eventAttribution` ChromeSafariBrowser settings for iOS
+- Added `clearWebsiteData`, `prewarmConnections`, `invalidatePrewarmingToken` static methods on `ChromeSafariBrowser` for iOS
+- Added `getVariationsHeader` WebView static method
+
+### BREAKING CHANGES
+
+- `ChromeSafariBrowser.onCompletedInitialLoad` event has an optional argument
+- `ChromeSafariBrowserMenuItem.action` and `ChromeSafariBrowserActionButton.action` can be null
+- All `ChromeSafariBrowserSettings` properties are optionals
+
 ## 6.0.0-beta.8
 
 - Merged "Exposed "shared" property of HttpServer bind method to support more use-cases." [#1395](https://github.com/pichillilorenzo/flutter_inappwebview/pull/1395) (thanks to [LugonjaAleksandar](https://github.com/LugonjaAleksandar))
@@ -65,7 +170,7 @@
 - Added `PullToRefreshController.isEnabled` method
 - Updated `getMetaThemeColor` on iOS 15.0+
 - Deprecated `onLoadError` for `onReceivedError`. `onReceivedError` will be called also for subframes
-- Deprecated `onLoadHttpError` for `onReceivedError`. `onReceivedHttpError` will be called also for subframes
+- Deprecated `onLoadHttpError` for `onReceivedHttpError`. `onReceivedHttpError` will be called also for subframes
 
 ### BREAKING CHANGES
 
@@ -75,6 +180,31 @@
 - All properties of `GeolocationPermissionShowPromptResponse` cannot be `null`
 - Removed `URLProtectionSpace.iosIsProxy` property
 - `historyUrl` and `baseUrl` of `InAppWebViewInitialData` can be `null`
+
+## 5.7.2+3
+
+- Fixed "Xiaomi store - Conflict of Privacy Permissions, android.permission.MY_READ_INSTALLED_PACKAGES" [#1462](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1462)
+
+## 5.7.2+2
+
+- Fixed "Unexpected addWebMessageListener behaviour" [#1422](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1422)
+
+## 5.7.2+1
+
+- Fixed "Cannot Grant Permission at Android 21" [#1447](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1447)
+
+## 5.7.2
+
+- Removed Android Hybrid Composition constraint to use the pull-to-refresh feature
+
+## 5.7.1+2
+
+- Fixed Android `NullPointerException` on `InAppBrowserActivity.dispose`
+
+## 5.7.1+1
+
+- Fixed User Script remove methods
+- Fixed missing `break` statement on Android when parsing `ChromeCustomTabsOptions.displayMode` in Java code
 
 ## 5.7.1
 

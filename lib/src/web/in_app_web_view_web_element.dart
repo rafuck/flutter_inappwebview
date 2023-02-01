@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/services.dart';
+import 'package:flutter_inappwebview/src/web_uri.dart';
 import 'dart:html';
 import 'dart:js' as js;
 
@@ -279,7 +280,7 @@ class InAppWebViewWebElement implements Disposable {
     final String contentType =
         httpRequest.getResponseHeader('content-type') ?? 'text/html';
     return 'data:$contentType,' +
-        Uri.encodeFull(httpRequest.responseText ?? '');
+        Uri.encodeComponent(httpRequest.responseText ?? '');
   }
 
   String getIFrameId() {
@@ -297,7 +298,7 @@ class InAppWebViewWebElement implements Disposable {
 
   Future<void> loadData(
       {required String data, String mimeType = "text/html"}) async {
-    iframe.src = 'data:$mimeType,' + Uri.encodeFull(data);
+    iframe.src = 'data:$mimeType,' + Uri.encodeComponent(data);
   }
 
   Future<void> loadFile({required String assetFilePath}) async {
@@ -344,7 +345,7 @@ class InAppWebViewWebElement implements Disposable {
       {required String url, required Uint8List postData}) async {
     await loadUrl(
         urlRequest:
-            URLRequest(url: Uri.tryParse(url), method: "POST", body: postData));
+            URLRequest(url: WebUri(url), method: "POST", body: postData));
   }
 
   Future<void> injectJavascriptFileFromUrl(

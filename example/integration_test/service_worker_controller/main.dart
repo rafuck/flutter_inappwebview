@@ -5,7 +5,11 @@ import 'set_service_worker_client.dart';
 import 'should_intercept_request.dart';
 
 void main() {
-  final shouldSkip = kIsWeb;
+  final shouldSkip = kIsWeb
+      ? true
+      : ![
+          TargetPlatform.android,
+        ].contains(defaultTargetPlatform);
 
   group('Service Worker Controller', () {
     shouldInterceptRequest();
